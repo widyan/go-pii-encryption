@@ -9,11 +9,11 @@ import (
 )
 
 type Encryption struct {
-	AESKey  string
-	HMACKey string
+	AESKey  []byte
+	HMACKey []byte
 }
 
-func NewEncryption(aesKey, hmacKey string) *Encryption {
+func NewEncryption(aesKey, hmacKey []byte) *Encryption {
 	return &Encryption{AESKey: aesKey, HMACKey: hmacKey}
 }
 
