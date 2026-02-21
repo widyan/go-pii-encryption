@@ -101,7 +101,7 @@ func (e *Encryption) DecryptOptional(enc *[]byte) (*string, error) {
 		return nil, nil
 	}
 
-	plain, err := e.Decrypt(e.AESKey, *enc)
+	plain, err := e.Decrypt(*enc)
 	if err != nil {
 		return nil, err
 	}
@@ -114,5 +114,5 @@ func (e *Encryption) EncryptOptionalString(value *string) ([]byte, error) {
 	if value == nil || *value == "" {
 		return nil, nil
 	}
-	return e.EncryptString(e.AESKey, *value)
+	return e.EncryptString(*value)
 }
