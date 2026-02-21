@@ -13,7 +13,18 @@ type Encryption struct {
 	HMACKey []byte
 }
 
-func NewEncryption(aesKey, hmacKey []byte) *Encryption {
+type EncryptionImpl interface {
+	Encrypt(plaintext []byte) ([]byte, error)
+	Decrypt(ciphertext []byte) ([]byte, error)
+	EncryptString(plaintext string) ([]byte, error)
+	MustEncryptString(plaintext string) []byte
+	DecryptString(ciphertext []byte) (string, error)
+	MustDecryptString(ciphertext []byte) string
+	DecryptOptional(enc *[]byte) (*string, error)
+	EncryptOptionalString(value *string) ([]byte, error)
+}
+
+func NewEncryption(aesKey, hmacKey []byte) EncryptionImpl {
 	return &Encryption{AESKey: aesKey, HMACKey: hmacKey}
 }
 
@@ -58,11 +69,11 @@ func (e *Encryption) Decrypt(ciphertext []byte) ([]byte, error) {
 }
 
 func (e *Encryption) EncryptString(plaintext string) ([]byte, error) {
-	return Encrypt(e.AESKey, []byte(plaintext))
+	return e.Encrypt([]byte(plaintext))
 }
 
 func (e *Encryption) MustEncryptString(plaintext string) []byte {
-	enc, err := EncryptString(e.AESKey, plaintext)
+	enc, err := e.EncryptString(plaintext)
 	if err != nil {
 		panic(err)
 	}
@@ -70,7 +81,7 @@ func (e *Encryption) MustEncryptString(plaintext string) []byte {
 }
 
 func (e *Encryption) DecryptString(ciphertext []byte) (string, error) {
-	plain, err := Decrypt(e.AESKey, ciphertext)
+	plain, err := e.Decrypt(ciphertext)
 	if err != nil {
 		return "", err
 	}
@@ -78,7 +89,7 @@ func (e *Encryption) DecryptString(ciphertext []byte) (string, error) {
 }
 
 func (e *Encryption) MustDecryptString(ciphertext []byte) string {
-	s, err := DecryptString(e.AESKey, ciphertext)
+	s, err := e.DecryptString(ciphertext)
 	if err != nil {
 		panic(err)
 	}
@@ -90,7 +101,7 @@ func (e *Encryption) DecryptOptional(enc *[]byte) (*string, error) {
 		return nil, nil
 	}
 
-	plain, err := Decrypt(e.AESKey, *enc)
+	plain, err := e.Decrypt(e.AESKey, *enc)
 	if err != nil {
 		return nil, err
 	}
@@ -99,11 +110,9 @@ func (e *Encryption) DecryptOptional(enc *[]byte) (*string, error) {
 	return &s, nil
 }
 
-func (e *Encryption) EncryptOptionalString(
-	value *string,
-) ([]byte, error) {
+func (e *Encryption) EncryptOptionalString(value *string) ([]byte, error) {
 	if value == nil || *value == "" {
 		return nil, nil
 	}
-	return EncryptString(e.AESKey, *value)
+	return e.EncryptString(e.AESKey, *value)
 }
